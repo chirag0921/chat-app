@@ -9,6 +9,12 @@ app.get('/', function(req, res){
   
  io.on('connection',function(socket){
 	console.log('a user connected'); 
+	
+	socket.on('join',function(nickname){
+		socket.nickname = nickname;
+		socket.broadcast.emit('notice',nickname+' has join the chat.');
+	});
+	
 	socket.on('disconnect',function(){
 		console.log('user disconnectd');
 	});

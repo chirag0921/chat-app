@@ -2,7 +2,12 @@
 <html>
   <head>
     <title>Socket.IO chat</title>
-    <style>
+	
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+	<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+	<!--<script src="js/client.js" type = "text/javascript"></script>
+    --><style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font: 13px Helvetica, Arial; }
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
@@ -11,25 +16,50 @@
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
+	  .username{
+		font-weight:bold;
+		font-style:italic;
+		font-size:20px;
+		padding:10px;
+		border-bottom: 1px solid black;
+	  }
     </style>
   </head>
   <body>
+	<div id="username" class = "username"></div>
     <ul id="messages"></ul>
     <form action="">
       <input id="m" autocomplete="off" /><button>Send</button>
     </form>
-	<script src="/socket.io/socket.io.js"></script>
-	<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-	<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 	<script>
-		var socket = io();
+	var socket = io(),
+			nickname,
+			msgList = $('#messages'),
+			$username = $('#username'),
+			nname = null;
+				
+		if('localStoraget' in window & localStorage.getItem('nickname')){
+			nickname = localStorage.getItem('nickname');
+		} else {
+			nickname = prompt('Enter your nickname');
+			if('localStorage' in window){
+				localStorage.setItem('nickname', nickname);
+			}
+		}
+		
+		if(nickname !== '' &nickname !== undefined){
+			$username.text('nickname : '+nickname);
+		}
+		
+		socket.emit('join', nickname);
 		$('form').submit(function(){
-			socket.emit('chat message', $('#m').val());
+			socket.emit('chat message', {'nickname': nickname, "msg" :$('#m').val()});
 			$('#m').val('');
 			return false;
 		});
 		socket.on('chat message',function(msg){
-			$('#messages').append($('<li>').text(msg));
+			nname =(msg.nickname === nickname)?'me':msg.nickname;
+			$('#messages').append($('<li>').text(nname + ': ' + msg.msg));
 		});
 	</script>
   </body>
