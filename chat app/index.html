@@ -32,38 +32,44 @@
       <input id="m" autocomplete="off" /><button>Send</button>
     </form>
 	<script>
+        var ChatApp = {},
+            socket = io(),
+			nickname,
+			$msgList = $('#messages'),
+			$username = $('#username'),
+            $inputBox =$('#m'),
+			nname = null,
+			inputMsg = null;
+				
+		if('localStoraget' in window & localStorage.getItem('nickname')){
+			nickname = localStorage.getItem('nickname');
+		} else {
+			nickname = prompt('Enter your nickname');
+			if('localStorage' in window){
+				localStorage.setItem('nickname', nickname);
+			}
+		}
+		
+		if(nickname !== '' &nickname !== undefined){
+		    $username.text('nickname : ' + nickname);
+		    socket.emit('join', nickname);//, socket);
+		}
+		
+		$('form').submit(function () {
+		    inputMsg = $inputBox.val();
+		    ChatApp._appendMessage('me : ' + inputMsg);
+		    socket.emit('chat message', { 'nickname': nickname, "msg": inputMsg });
+		    $inputBox.val('');
+			return false;
+		});
 
-        var socket = io(),
-                nickname,
-                msgList = $('#messages'),
-                $username = $('#username'),
-                nname = null;
+		socket.on('chat message', function (msg) {
+		    ChatApp._appendMessage(msg.nickname + ': ' + msg.msg);
+		});
 
-        if ('localStoraget' in window & localStorage.getItem('nickname')) {
-            nickname = localStorage.getItem('nickname');
-        } else {
-            nickname = prompt('Enter your nickname');
-            if ('localStorage' in window) {
-                localStorage.setItem('nickname', nickname);
-            }
-        }
-
-        if (nickname !== '' & nickname !== undefined) {
-            $username.text('nickname : ' + nickname);
-            socket.emit('join', nickname);//, socket);
-        }
-
-        $('form').submit(function () {
-            $('#messages').append($('<li>').text('me : ' + $('#m').val()));
-            socket.emit('chat message', { 'nickname': nickname, "msg": $('#m').val() });
-            $('#m').val('');
-            return false;
-        });
-        socket.on('chat message', function (msg) {
-            nname = (msg.nickname === nickname) ? 'me' : msg.nickname;
-            $('#messages').append($('<li>').text(nname + ': ' + msg.msg));
-        });
-
+		ChatApp._appendMessage = function _appendMessage(str) {
+		    $msgList.append($('<li>').text(str));
+		}
 	</script>
   </body>
 </html>
