@@ -21,10 +21,15 @@ app.get('/', function(req, res){
 	socket.on('disconnect',function(){
 		console.log('user disconnectd');
 	});
+
 	socket.on('chat message',function(msg){
 		console.log('message:'+msg);
 		//io.emit('chat message',msg);
 		socket.broadcast.emit('chat message', msg);
+	});
+
+	socket.on('is typing', function (data) {
+	    socket.broadcast.emit('typing', { nickname: data.nickname });
 	});
  });
 

@@ -23,11 +23,22 @@
 		padding:10px;
 		border-bottom: 1px solid black;
 	  }
+      .isTyping {
+        bottom: 41px;
+        position: fixed;
+        text-align: right;
+        width: 100%;
+        font-weight: bold;
+        font-size: 1.3em;
+        color: rgba(0,0,0,0.5);
+        padding: 10px;
+      }
     </style>
   </head>
   <body>
 	<div id="username" class = "username"></div>
     <ul id="messages"></ul>
+    <div id="isTyping" class="isTyping"></div>
     <form action="">
       <input id="m" autocomplete="off" /><button>Send</button>
     </form>
@@ -37,7 +48,8 @@
 			nickname,
 			$msgList = $('#messages'),
 			$username = $('#username'),
-            $inputBox =$('#m'),
+            $inputBox = $('#m'),
+            $isTypingArea =$('#isTyping'),
 			nname = null,
 			inputMsg = null;
 				
@@ -57,18 +69,32 @@
 		
 		$('form').submit(function () {
 		    inputMsg = $inputBox.val();
-		    ChatApp._appendMessage('me : ' + inputMsg);
+		    ChatApp._appendMessageToChatArea('me : ' + inputMsg);
 		    socket.emit('chat message', { 'nickname': nickname, "msg": inputMsg });
 		    $inputBox.val('');
 			return false;
 		});
 
-		socket.on('chat message', function (msg) {
-		    ChatApp._appendMessage(msg.nickname + ': ' + msg.msg);
+		$inputBox.keyup(function (e) {
+		    if (e.keyCode !== 13) {
+		        socket.emit('is typing', { nickname: nickname });
+		    }
 		});
 
-		ChatApp._appendMessage = function _appendMessage(str) {
+		socket.on('typing', function (data) {
+		    ChatApp._setTextToIsTypingArea(data);
+		});
+
+		socket.on('chat message', function (msg) {
+		    ChatApp._appendMessageToChatArea(msg.nickname + ': ' + msg.msg);
+		});
+
+		ChatApp._appendMessageToChatArea = function _appendMessageToChatArea(str) {
 		    $msgList.append($('<li>').text(str));
+		}
+
+		ChatApp._setTextToIsTypingArea = function _appendMessageToChatArea(data) {
+		    $isTypingArea.text(data.nickname+' is typing ...');
 		}
 	</script>
   </body>
