@@ -1,6 +1,7 @@
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var users = [];
 
 app.get('/', function(req, res){
   //res.send('<h1>Hello world</h1>');
@@ -13,6 +14,8 @@ app.get('/', function(req, res){
 	socket.on('join',function(nickname){
 		socket.nickname = nickname;
 		socket.broadcast.emit('notice',nickname+' has join the chat.');
+		console.log(nickname + ' has join the chat.');
+		//users.push({'nickname':nickname,'socket':userSocket});
 	});
 	
 	socket.on('disconnect',function(){
@@ -20,7 +23,8 @@ app.get('/', function(req, res){
 	});
 	socket.on('chat message',function(msg){
 		console.log('message:'+msg);
-		io.emit('chat message',msg);
+		//io.emit('chat message',msg);
+		socket.broadcast.emit('chat message', msg);
 	});
  });
 
