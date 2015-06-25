@@ -31,6 +31,10 @@ app.get('/', function(req, res){
 	socket.on('is typing', function (data) {
 	    socket.broadcast.emit('typing', { nickname: data.nickname });
 	});
+
+	socket.on('typing-timed-out', function () {
+	    socket.broadcast.emit('typing-timed-out');
+	});
  });
 
 http.listen(3000, function(){

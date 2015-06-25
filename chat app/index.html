@@ -68,6 +68,8 @@
 		}
 		
 		$('form').submit(function () {
+		    clearTimeout(this.typingtimeout);
+		    ChatApp._ontypingTimeout();
 		    inputMsg = $inputBox.val();
 		    ChatApp._appendMessageToChatArea('me : ' + inputMsg);
 		    socket.emit('chat message', { 'nickname': nickname, "msg": inputMsg });
@@ -77,12 +79,18 @@
 
 		$inputBox.keyup(function (e) {
 		    if (e.keyCode !== 13) {
-		        socket.emit('is typing', { nickname: nickname });
+		        clearTimeout(this.typingtimeout);
+		        socket.emit('is typing', { nickname: nickname }); 
+		        this.typingtimeout = setTimeout(function () { ChatApp._ontypingTimeout(); }, 5000);
 		    }
 		});
 
 		socket.on('typing', function (data) {
 		    ChatApp._setTextToIsTypingArea(data);
+		});
+
+		socket.on('typing-timed-out', function () {
+		    ChatApp._onTypingTimedout();
 		});
 
 		socket.on('chat message', function (msg) {
@@ -95,6 +103,14 @@
 
 		ChatApp._setTextToIsTypingArea = function _appendMessageToChatArea(data) {
 		    $isTypingArea.text(data.nickname+' is typing ...');
+		}
+
+		ChatApp._ontypingTimeout = function _ontypingTimeout() {
+		    socket.emit('typing-timed-out');
+		}
+
+		ChatApp._onTypingTimedout = function _onTypingTimedout() {
+		    $isTypingArea.text('');
 		}
 	</script>
   </body>
